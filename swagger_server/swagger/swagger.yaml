@@ -1,0 +1,398 @@
+---
+swagger: "2.0"
+info:
+  description: "This design document is for API service, including uploading API files,download\
+    \ existing API files and validate .YAML file. Also, this system offersAPI file\
+    \ data parsing and editing for non-professional users."
+  version: "1.0.0"
+  title: "Swagger Parser"
+host: "localhost:5000"
+basePath: "/"
+tags:
+- name: "Spec"
+  description: "Swagger specifications"
+- name: "Validator"
+  description: "Swagger validator"
+- name: "Parser"
+  description: "Swagger spec parser"
+schemes:
+- "https"
+- "http"
+paths:
+  /swaggerspec:
+    get:
+      tags:
+      - "Spec"
+      summary: "List all files existing in database."
+      operationId: "swaggerspec_get"
+      parameters: []
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/PeekData"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+    post:
+      tags:
+      - "Spec"
+      summary: "Upload .yaml file, validate and save JSON format to database."
+      operationId: "swaggerspec_post"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Upload file data"
+        required: true
+        schema:
+          $ref: "#/definitions/Upload"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/SpecId"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "409":
+          description: "Duplicate file"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+    delete:
+      tags:
+      - "Spec"
+      summary: "Delete all files existing in database."
+      operationId: "swaggerspec_delete"
+      parameters: []
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Success"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+  /swaggerspec/{id}:
+    get:
+      tags:
+      - "Spec"
+      summary: "Get spec file by id from database."
+      operationId: "swaggerspec_id_get"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "File unique id"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/SwaggerSpec"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "404":
+          description: "File not found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+    put:
+      tags:
+      - "Spec"
+      summary: "Update spec file by id from database."
+      operationId: "swaggerspec_id_put"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "File unique id"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Success"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "404":
+          description: "File not found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+    delete:
+      tags:
+      - "Spec"
+      summary: "Delete spec file by id from database."
+      operationId: "swaggerspec_id_delete"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "File unique id"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Success"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "404":
+          description: "File not found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.spec_controller"
+  /validate:
+    post:
+      tags:
+      - "Validator"
+      summary: "Validate the specs of an API file"
+      operationId: "validate_post"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "API file data"
+        required: true
+        schema:
+          $ref: "#/definitions/SwaggerSpec"
+      responses:
+        "200":
+          description: "Valid"
+          schema:
+            $ref: "#/definitions/Success"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.validator_controller"
+  /parse/{id}:
+    get:
+      tags:
+      - "Parser"
+      summary: "Parse an API file"
+      operationId: "parse_id_get"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "File unique id"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        "200":
+          description: "Valid"
+          schema:
+            $ref: "#/definitions/ParseData"
+        "400":
+          description: "Invalid"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.parser_controller"
+definitions:
+  SwaggerSpec:
+    type: "object"
+    required:
+    - "paths"
+    properties:
+      info:
+        type: "object"
+        properties: {}
+      paths:
+        type: "object"
+        properties: {}
+      swagger:
+        type: "string"
+      host:
+        type: "string"
+      schemes:
+        type: "array"
+        items:
+          type: "string"
+      basePath:
+        type: "string"
+      securityDefinitions:
+        type: "object"
+        properties: {}
+      produces:
+        type: "array"
+        items:
+          type: "string"
+      definitions:
+        type: "object"
+        properties: {}
+      openapi:
+        type: "string"
+      servers:
+        type: "array"
+        items:
+          type: "object"
+          properties: {}
+      components:
+        type: "object"
+        properties: {}
+    example:
+      components: "{}"
+      servers:
+      - "{}"
+      - "{}"
+      basePath: "basePath"
+      openapi: "openapi"
+      paths: "{}"
+      host: "host"
+      produces:
+      - "produces"
+      - "produces"
+      schemes:
+      - "schemes"
+      - "schemes"
+      securityDefinitions: "{}"
+      definitions: "{}"
+      swagger: "swagger"
+      info: "{}"
+  ParseData:
+    type: "object"
+    required:
+    - "basePath"
+    - "paths"
+    properties:
+      info:
+        type: "object"
+        properties: {}
+      basePath:
+        type: "string"
+      paths:
+        type: "object"
+        properties: {}
+    example:
+      basePath: "basePath"
+      paths: "{}"
+      info: "{}"
+  Upload:
+    type: "object"
+    required:
+    - "file"
+    - "name"
+    properties:
+      name:
+        type: "string"
+        description: "File name"
+      file:
+        $ref: "#/definitions/SwaggerSpec"
+  PeekData:
+    type: "object"
+    required:
+    - "id"
+    - "name"
+    - "version"
+    properties:
+      id:
+        $ref: "#/definitions/SpecId"
+      name:
+        type: "string"
+        description: "File name"
+      version:
+        type: "string"
+    example:
+      name: "name"
+      id: {}
+      version: "version"
+  SpecId:
+    type: "string"
+    format: "uuid"
+  Success:
+    type: "object"
+    required:
+    - "SuccessMessage"
+    properties:
+      SuccessMessage:
+        type: "string"
+    example:
+      SuccessMessage: "SuccessMessage"
+  Error:
+    type: "object"
+    required:
+    - "ErrorMessage"
+    properties:
+      ErrorMessage:
+        type: "string"
