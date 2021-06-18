@@ -151,6 +151,12 @@ paths:
         required: true
         type: "string"
         format: "uuid"
+      - in: "body"
+        name: "spec"
+        description: "Updated spec"
+        required: true
+        schema:
+          $ref: "#/definitions/SwaggerSpec"
       responses:
         "200":
           description: "Success"
@@ -373,6 +379,7 @@ definitions:
         description: "File name"
       version:
         type: "string"
+        description: "File version"
     example:
       name: "name"
       id: {}

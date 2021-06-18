@@ -99,8 +99,8 @@ class SwaggerSpec(Model):
 
     @classmethod
     def to_dict(cls, spec) -> 'dict':
-        api_version = spec.info['version']
-        if api_version <= "2.0" and api_version < "3.0":
+        api_version = spec.swagger if spec.swagger is not None else spec.openapi
+        if "2.0" <= api_version < "3.0":
             return {
                 "swagger": spec.swagger,
                 "info": spec.info,

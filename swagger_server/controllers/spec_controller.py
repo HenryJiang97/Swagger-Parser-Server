@@ -39,7 +39,6 @@ def swaggerspec_delete():  # noqa: E501
 
      # noqa: E501
 
-
     :rtype: Success
     """
     try:
@@ -72,11 +71,16 @@ def swaggerspec_id_delete(id):  # noqa: E501
      # noqa: E501
 
     :param id: File unique id
-    :type id: 
+    :type id: str
 
     :rtype: Success
     """
-    return 'do some magic!'
+    try:
+        db = Database()
+        db.connect()
+        return db.delete_by_id(id)
+    except ConnectionError as e:
+        return Error(e)
 
 
 def swaggerspec_id_get(id):  # noqa: E501
@@ -85,21 +89,36 @@ def swaggerspec_id_get(id):  # noqa: E501
      # noqa: E501
 
     :param id: File unique id
-    :type id: 
+    :type id: str
 
     :rtype: SwaggerSpec
     """
-    return 'do some magic!'
+    try:
+        db = Database()
+        db.connect()
+        return db.select_by_id(id)
+    except ConnectionError as e:
+        return Error(e)
 
 
-def swaggerspec_id_put(id):  # noqa: E501
+def swaggerspec_id_put(id, spec):  # noqa: E501
     """Update spec file by id from database.
 
      # noqa: E501
 
     :param id: File unique id
-    :type id: 
+    :type id:
+    :param spec: Updated spec
+    :type spec: dict | bytes
 
     :rtype: Success
     """
-    return 'do some magic!'
+    try:
+        if connexion.request.is_json:
+            spec = SwaggerSpec.from_dict(connexion.request.get_json())  # noqa: E501
+
+        db = Database()
+        db.connect()
+        return db.update_by_id(id, spec)
+    except ConnectionError as e:
+        return Error(e)

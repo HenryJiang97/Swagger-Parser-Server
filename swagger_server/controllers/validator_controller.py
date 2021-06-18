@@ -6,6 +6,9 @@ from swagger_server.models.success import Success  # noqa: E501
 from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
 from swagger_server import util
 
+from openapi_spec_validator import validate_v2_spec
+from openapi_spec_validator import validate_v3_spec
+
 
 def validate_post(body):  # noqa: E501
     """Validate the specs of an API file
@@ -19,4 +22,17 @@ def validate_post(body):  # noqa: E501
     """
     if connexion.request.is_json:
         body = SwaggerSpec.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+
+    try:
+        spec_dict = SwaggerSpec.to_dict(body)
+        api_version = body.swagger if body.swagger is not None else body.openapi
+
+        if '2.0' <= api_version < '3.0':
+            validate_v2_spec(spec_dict)
+        else:
+            validate_v3_spec(spec_dict)
+
+        return Success("Valid spec")
+    except SystemError as e:
+        return Error("Invalid spec")
+

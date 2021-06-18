@@ -24,6 +24,8 @@ class PeekData(Model):
         :type id: SpecId
         :param name: The name of this PeekData.  # noqa: E501
         :type name: str
+        :param version: The version of this PeekData.  # noqa: E501
+        :type version: str
         """
         self.swagger_types = {
             'id': SpecId,
@@ -111,7 +113,7 @@ class PeekData(Model):
         """
         return self._version
 
-    @name.setter
+    @version.setter
     def version(self, version: str):
         """Sets the version of this PeekData.
 
@@ -121,6 +123,6 @@ class PeekData(Model):
         :type version: str
         """
         if version is None:
-            raise ValueError("Invalid value for `name`, must not be `None`")  # noqa: E501
+            raise ValueError("Invalid value for `version`, must not be `None`")  # noqa: E501
 
         self._version = version
