@@ -2,12 +2,12 @@ import psycopg2
 from psycopg2.extras import json
 import uuid
 
-from ..configs.config import POSTGRESQL_URI, TABLENAME
+from swagger_server.configs.config import POSTGRESQL_URI, TABLENAME
 
-from ..models.success import Success
-from ..models.error import Error
-from ..models.swagger_spec import SwaggerSpec
-from ..models.peek_data import PeekData
+from swagger_server.models.success import Success
+from swagger_server.models.error import Error
+from swagger_server.models.swagger_spec import SwaggerSpec
+from swagger_server.models.peek_data import PeekData
 
 
 class Database:

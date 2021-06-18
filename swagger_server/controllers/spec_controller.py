@@ -9,7 +9,7 @@ from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
 from swagger_server.models.upload import Upload  # noqa: E501
 from swagger_server import util
 
-from ..db.db import Database
+from swagger_server.db.db import Database
 
 
 def swaggerspec_post(body):  # noqa: E501

@@ -28,8 +28,10 @@ def validate_post(body):  # noqa: E501
         api_version = body.swagger if body.swagger is not None else body.openapi
 
         if '2.0' <= api_version < '3.0':
+            # Swagger 2.0
             validate_v2_spec(spec_dict)
         else:
+            # Openapi 3.0
             validate_v3_spec(spec_dict)
 
         return Success("Valid spec")
