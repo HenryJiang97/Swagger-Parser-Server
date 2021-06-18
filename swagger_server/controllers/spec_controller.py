@@ -1,5 +1,7 @@
 import connexion
 import six
+from openapi_spec_validator import validate_v2_spec
+from openapi_spec_validator import validate_v3_spec
 
 from swagger_server.models.error import Error  # noqa: E501
 from swagger_server.models.peek_data import PeekData  # noqa: E501
@@ -10,6 +12,7 @@ from swagger_server.models.upload import Upload  # noqa: E501
 from swagger_server import util
 
 from swagger_server.db.db import Database
+from swagger_server.controllers.validator_controller import validate_post
 
 
 def swaggerspec_post(body):  # noqa: E501
@@ -26,11 +29,22 @@ def swaggerspec_post(body):  # noqa: E501
         if connexion.request.is_json:
             body = Upload.from_dict(connexion.request.get_json())  # noqa: E501
 
+        # Validate spec
+        spec_dict = SwaggerSpec.to_dict(body.file)
+        api_version = body.file.swagger if body.file.swagger is not None else body.file.openapi
+
+        if '2.0' <= api_version < '3.0':
+            # Swagger 2.0
+            validate_v2_spec(spec_dict)
+        else:
+            # Openapi 3.0
+            validate_v3_spec(spec_dict)
+
         db = Database()
         db.connect()
 
         return db.insert(body.name, body.file)
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)
 
 
@@ -45,7 +59,7 @@ def swaggerspec_delete():  # noqa: E501
         db = Database()
         db.connect()
         return db.clear()
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)
 
 
@@ -61,7 +75,7 @@ def swaggerspec_get():  # noqa: E501
         db = Database()
         db.connect()
         return db.select_all()
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)
 
 
@@ -79,7 +93,7 @@ def swaggerspec_id_delete(id):  # noqa: E501
         db = Database()
         db.connect()
         return db.delete_by_id(id)
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)
 
 
@@ -97,7 +111,7 @@ def swaggerspec_id_get(id):  # noqa: E501
         db = Database()
         db.connect()
         return db.select_by_id(id)
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)
 
 
@@ -120,5 +134,5 @@ def swaggerspec_id_put(id, spec):  # noqa: E501
         db = Database()
         db.connect()
         return db.update_by_id(id, spec)
-    except ConnectionError as e:
+    except Exception as e:
         return Error(e)

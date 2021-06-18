@@ -43,7 +43,7 @@ def parse_id_get(id):  # noqa: E501
 
         return parse_data
 
-    except ConnectionError as e:
-        return Error("Parser error")
+    except Exception as e:
+        return Error(e)
 
     return 'do some magic!'
