@@ -267,7 +267,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "File not found"
           schema:
             $ref: "#/definitions/Error"
         "503":

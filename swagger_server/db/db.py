@@ -20,8 +20,11 @@ class Database:
         self.connection = psycopg2.connect(POSTGRESQL_URI)
         try:
             self.create_table()
+            return self.connection
         except psycopg2.errors.DuplicateTable:
-            pass
+            return self.connection
+        except Exception as e:
+            return None
 
     def select_all(self):
         """Select all entries in the DB
@@ -43,25 +46,6 @@ class Database:
                             )
                         )
                 return result
-        except ConnectionError as e:
-            return Error(e)
-
-    def select_by_id(self, id):
-        """Select spec file by id from database.
-
-        :param id: File unique id
-        :type id:
-
-        :rtype: SwaggerSpec
-        """
-        try:
-            with self.connection:
-                with self.connection.cursor() as cursor:
-                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE id='{id}';")
-                    response = cursor.fetchall()
-                    for row in response:
-                        return SwaggerSpec.from_dict(row[0])
-                return None
         except ConnectionError as e:
             return Error(e)
 
@@ -90,6 +74,36 @@ class Database:
         except psycopg2.errors.DuplicateFile:
             return Error("Duplicate files")
 
+    def clear(self):
+        """Delete all entries from the DB
+
+        :rtype: Success
+        """
+        try:
+            self.clear_table()
+            return Success("Table cleared")
+        except psycopg2.errors.NoData as e:
+            return Error(e)
+
+    def select_by_id(self, id):
+        """Select spec file by id from database.
+
+        :param id: File unique id
+        :type id:
+
+        :rtype: SwaggerSpec
+        """
+        try:
+            with self.connection:
+                with self.connection.cursor() as cursor:
+                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE id='{id}';")
+                    response = cursor.fetchall()
+                    for row in response:
+                        return SwaggerSpec.from_dict(row[0])
+                return None
+        except ConnectionError as e:
+            return Error(e)
+
     def update_by_id(self, id, spec):
         """Update spec file by id from database.
 
@@ -106,6 +120,8 @@ class Database:
         spec_dict = SwaggerSpec.to_dict(spec)
 
         try:
+            if self.select_by_id(id) is None:
+                return None
             with self.connection:
                 with self.connection.cursor() as cursor:
                     cursor.execute(f"UPDATE {TABLENAME} SET version=(%s), spec=(%s) WHERE id='{id}';", (version, json.dumps(spec_dict)))
@@ -122,22 +138,13 @@ class Database:
         :rtype: Success
         """
         try:
+            if self.select_by_id(id) is None:
+                return None
             with self.connection:
                 with self.connection.cursor() as cursor:
                     cursor.execute(f"DELETE FROM {TABLENAME} WHERE id='{id}';")
                 return Success("Entry deleted")
         except psycopg2.errors.SqlJsonMemberNotFound as e:
-            return Error(e)
-
-    def clear(self):
-        """Delete all entries from the DB
-
-        :rtype: Success
-        """
-        try:
-            self.clear_table()
-            return Success("Table cleared")
-        except psycopg2.errors.NoData as e:
             return Error(e)
 
     def create_table(self):

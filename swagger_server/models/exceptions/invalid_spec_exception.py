@@ -1,0 +1,2 @@
+class InvalidSpecException(Exception):
+    pass

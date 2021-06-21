@@ -1,14 +1,15 @@
-import connexion
-import six
+from flask import make_response
 
+from swagger_server.models.error import Error
 from swagger_server.models.swagger_spec import SwaggerSpec
-from swagger_server.models.error import Error  # noqa: E501
-from swagger_server.models.parse_data import ParseData  # noqa: E501
+from swagger_server.models.parse_data import ParseData
+
+from swagger_server.models.exceptions.parse_exception import ParseException
+from swagger_server.models.exceptions.file_not_found_exception import FileNotFoundException
+from swagger_server.models.exceptions.db_connection_exception import DBConnectionException
 
 from swagger_server.db.db import Database
 from swagger_server.service.parser import Parser
-
-from swagger_server import util
 
 
 def parse_id_get(id):  # noqa: E501
@@ -22,11 +23,19 @@ def parse_id_get(id):  # noqa: E501
     :rtype: ParseData
     """
     try:
+        # Database connection
         db = Database()
-        db.connect()
-        spec = db.select_by_id(id)
-        spec_dict = SwaggerSpec.to_dict(spec)
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
 
+        # Database manipulation
+        spec = db.select_by_id(id)
+        if spec is None:
+            raise FileNotFoundException
+
+        # Parse
+        spec_dict = SwaggerSpec.to_dict(spec)
         parser = Parser(swagger_dict=spec_dict)
 
         # Info
@@ -41,9 +50,18 @@ def parse_id_get(id):  # noqa: E501
             parser.paths
         )
 
-        return parse_data
+        return make_response(ParseData.to_dict(parse_data), 200)
+
+    except FileNotFoundException as e:
+        return make_response("File Not Found", 500)
+
+    except ParseException as e:
+        return make_response("Invalid File", 400)
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
 
     except Exception as e:
-        return Error(e)
-
-    return 'do some magic!'
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)

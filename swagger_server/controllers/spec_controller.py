@@ -1,5 +1,7 @@
 import connexion
 import six
+from flask import make_response
+
 from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
 
@@ -10,6 +12,11 @@ from swagger_server.models.success import Success  # noqa: E501
 from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
 from swagger_server.models.upload import Upload  # noqa: E501
 from swagger_server import util
+
+from swagger_server.models.exceptions.file_not_found_exception import FileNotFoundException
+from swagger_server.models.exceptions.db_connection_exception import DBConnectionException
+from swagger_server.models.exceptions.duplicate_file_exception import DuplicateFileException
+from swagger_server.models.exceptions.invalid_spec_exception import InvalidSpecException
 
 from swagger_server.db.db import Database
 from swagger_server.controllers.validator_controller import validate_post
@@ -30,22 +37,43 @@ def swaggerspec_post(body):  # noqa: E501
             body = Upload.from_dict(connexion.request.get_json())  # noqa: E501
 
         # Validate spec
-        spec_dict = SwaggerSpec.to_dict(body.file)
-        api_version = body.file.swagger if body.file.swagger is not None else body.file.openapi
+        try:
+            spec_dict = SwaggerSpec.to_dict(body.file)
+            api_version = body.file.swagger if body.file.swagger is not None else body.file.openapi
 
-        if '2.0' <= api_version < '3.0':
-            # Swagger 2.0
-            validate_v2_spec(spec_dict)
-        else:
-            # Openapi 3.0
-            validate_v3_spec(spec_dict)
+            if '2.0' <= api_version < '3.0':
+                # Swagger 2.0
+                validate_v2_spec(spec_dict)
+            else:
+                # Openapi 3.0
+                validate_v3_spec(spec_dict)
+        except Exception:
+            raise InvalidSpecException
 
+        # Database connection
         db = Database()
-        db.connect()
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
 
+        # Database manipulation
         return db.insert(body.name, body.file)
+
+    except InvalidSpecException:
+        e = Error("Invalid spec")
+        return make_response(Error.to_dict(e), 400)
+
+    except DuplicateFileException:
+        e = Error("File existed")
+        return make_response(Error.to_dict(e), 409)
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
     except Exception as e:
-        return Error(e)
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
 
 
 def swaggerspec_delete():  # noqa: E501
@@ -56,11 +84,22 @@ def swaggerspec_delete():  # noqa: E501
     :rtype: Success
     """
     try:
+        # Database connection
         db = Database()
-        db.connect()
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
+
+        # Database manipulation
         return db.clear()
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
     except Exception as e:
-        return Error(e)
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
 
 
 def swaggerspec_get():  # noqa: E501
@@ -72,29 +111,22 @@ def swaggerspec_get():  # noqa: E501
     :rtype: List[PeekData]
     """
     try:
+        # Database connection
         db = Database()
-        db.connect()
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
+
+        # Database manipulation
         return db.select_all()
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
     except Exception as e:
-        return Error(e)
-
-
-def swaggerspec_id_delete(id):  # noqa: E501
-    """Delete spec file by id from database.
-
-     # noqa: E501
-
-    :param id: File unique id
-    :type id: str
-
-    :rtype: Success
-    """
-    try:
-        db = Database()
-        db.connect()
-        return db.delete_by_id(id)
-    except Exception as e:
-        return Error(e)
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
 
 
 def swaggerspec_id_get(id):  # noqa: E501
@@ -108,11 +140,68 @@ def swaggerspec_id_get(id):  # noqa: E501
     :rtype: SwaggerSpec
     """
     try:
+        # Database connection
         db = Database()
-        db.connect()
-        return db.select_by_id(id)
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
+
+        # Database manipulation
+        ret = db.select_by_id(id)
+        if ret is None:
+            raise FileNotFoundException
+
+        return make_response(SwaggerSpec.to_dict(ret), 200)
+
+    except FileNotFoundException:
+        e = Error("File not found")
+        return make_response(Error.to_dict(e), 404)
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
     except Exception as e:
-        return Error(e)
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
+
+
+def swaggerspec_id_delete(id):  # noqa: E501
+    """Delete spec file by id from database.
+
+     # noqa: E501
+
+    :param id: File unique id
+    :type id: str
+
+    :rtype: Success
+    """
+    try:
+        # Database connection
+        db = Database()
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
+
+        # Database manipulation
+        ret = db.delete_by_id(id)
+        if ret is None:
+            raise FileNotFoundException
+
+        response = Success("Deleted successfully")
+        return make_response(Success.to_dict(response), 200)
+
+    except FileNotFoundException:
+        e = Error("File not found")
+        return make_response(Error.to_dict(e), 404)
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
+    except Exception as e:
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
 
 
 def swaggerspec_id_put(id, spec):  # noqa: E501
@@ -131,8 +220,28 @@ def swaggerspec_id_put(id, spec):  # noqa: E501
         if connexion.request.is_json:
             spec = SwaggerSpec.from_dict(connexion.request.get_json())  # noqa: E501
 
+        # Database connection
         db = Database()
-        db.connect()
-        return db.update_by_id(id, spec)
+        connection = db.connect()
+        if connection is None:
+            raise DBConnectionException
+
+        # Database manipulation
+        ret = db.update_by_id(id, spec)
+        if ret is None:
+            raise FileNotFoundException
+
+        response = Success("Updated successfully")
+        return make_response(Success.to_dict(response), 200)
+
+    except FileNotFoundException:
+        e = Error("File not found")
+        return make_response(Error.to_dict(e), 404)
+
+    except DBConnectionException:
+        e = Error("Database connection error")
+        return make_response(Error.to_dict(e), 500)
+
     except Exception as e:
-        return Error(e)
+        e = Error(e)
+        return make_response(Error.to_dict(e), 503)
