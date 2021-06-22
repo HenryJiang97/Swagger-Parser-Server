@@ -348,12 +348,14 @@ definitions:
       basePath:
         type: "string"
       paths:
-        type: "object"
-        properties: {}
+        type: "array"
+        items:
+          type: "object"
     example:
       basePath: "basePath"
       paths: "{}"
-      info: "{}"
+      info:
+        - {}
   Upload:
     type: "object"
     required:

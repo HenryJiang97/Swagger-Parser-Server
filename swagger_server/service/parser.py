@@ -5,6 +5,9 @@ import json
 import six
 import sys
 import jinja2
+
+from swagger_server.models.path import Path
+
 from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
 from swagger_parser import SwaggerParser
@@ -69,7 +72,7 @@ class Parser(SwaggerParser):
         self.info = {}
         self.definitions_example = {}
         self.build_definitions_example()
-        self.paths = {}
+        self.paths = []
         self.operation = {}
         self.generated_operation = {}
         self.get_paths_data()
@@ -147,3 +150,20 @@ class Parser(SwaggerParser):
         p = re.compile(path)
         definition_name = re.sub(p, r'\1', ref)
         return definition_name
+
+    def get_paths_data(self):
+        """Get data for each paths in the swagger specification.
+
+        Get also the list of operationId.
+        """
+        for path, path_spec in self.specification['paths'].items():
+            url = u'{0}{1}'.format(self.base_path, path)
+            methods = []
+
+            for http_method in path_spec.keys():
+                if http_method not in self._HTTP_VERBS:
+                    continue
+
+                methods.append(http_method)
+
+            self.paths.append(Path(url, methods))

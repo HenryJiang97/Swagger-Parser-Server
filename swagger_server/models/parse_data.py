@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from swagger_server.models.base_model_ import Model
+from swagger_server.models.path import Path
 from swagger_server import util
 
 
@@ -15,7 +16,7 @@ class ParseData(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, info: object=None, base_path: str=None, paths: object=None):  # noqa: E501
+    def __init__(self, info: object=None, base_path: str=None, paths: List[Path]=None):  # noqa: E501
         """ParseData - a model defined in Swagger
 
         :param info: The info of this ParseData.  # noqa: E501
@@ -23,12 +24,12 @@ class ParseData(Model):
         :param base_path: The base_path of this ParseData.  # noqa: E501
         :type base_path: str
         :param paths: The paths of this ParseData.  # noqa: E501
-        :type paths: object
+        :type paths: List[Path]
         """
         self.swagger_types = {
             'info': object,
             'base_path': str,
-            'paths': object
+            'paths': List[Path]
         }
 
         self.attribute_map = {
@@ -97,22 +98,22 @@ class ParseData(Model):
         self._base_path = base_path
 
     @property
-    def paths(self) -> object:
+    def paths(self) -> List[Path]:
         """Gets the paths of this ParseData.
 
 
         :return: The paths of this ParseData.
-        :rtype: object
+        :rtype: List[Path]
         """
         return self._paths
 
     @paths.setter
-    def paths(self, paths: object):
+    def paths(self, paths: List[Path]):
         """Sets the paths of this ParseData.
 
 
         :param paths: The paths of this ParseData.
-        :type paths: object
+        :type paths: List[Path]
         """
         if paths is None:
             raise ValueError("Invalid value for `paths`, must not be `None`")  # noqa: E501

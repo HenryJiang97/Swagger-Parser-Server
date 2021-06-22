@@ -1,6 +1,6 @@
 import connexion
 import six
-from flask import make_response
+from flask import make_response, jsonify
 
 from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
@@ -19,7 +19,6 @@ from swagger_server.models.exceptions.duplicate_file_exception import DuplicateF
 from swagger_server.models.exceptions.invalid_spec_exception import InvalidSpecException
 
 from swagger_server.db.db import Database
-from swagger_server.controllers.validator_controller import validate_post
 
 
 def swaggerspec_post(body):  # noqa: E501
@@ -47,8 +46,8 @@ def swaggerspec_post(body):  # noqa: E501
             else:
                 # Openapi 3.0
                 validate_v3_spec(spec_dict)
-        except Exception:
-            raise InvalidSpecException
+        except Exception as e:
+            raise InvalidSpecException(e)
 
         # Database connection
         db = Database()
@@ -57,23 +56,27 @@ def swaggerspec_post(body):  # noqa: E501
             raise DBConnectionException
 
         # Database manipulation
-        return db.insert(body.name, body.file)
+        ret = db.insert(body.name, body.file)
+        if ret is None:
+            raise DuplicateFileException
 
-    except InvalidSpecException:
-        e = Error("Invalid spec")
-        return make_response(Error.to_dict(e), 400)
+        response = Success("Upload success")
+        return make_response(jsonify(response), 200)
+
+    except InvalidSpecException as e:
+        e = Error(f"Invalid spec: {str(e)}")
+        return make_response(jsonify(e), 400)
 
     except DuplicateFileException:
         e = Error("File existed")
-        return make_response(Error.to_dict(e), 409)
+        return make_response(jsonify(e), 409)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)
 
 
 def swaggerspec_delete():  # noqa: E501
@@ -91,15 +94,17 @@ def swaggerspec_delete():  # noqa: E501
             raise DBConnectionException
 
         # Database manipulation
-        return db.clear()
+        db.clear()
+
+        response = Success("Table cleared")
+        return make_response(jsonify(response), 200)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)
 
 
 def swaggerspec_get():  # noqa: E501
@@ -118,15 +123,16 @@ def swaggerspec_get():  # noqa: E501
             raise DBConnectionException
 
         # Database manipulation
-        return db.select_all()
+        ret = db.select_all()
+
+        return make_response(jsonify(ret), 200)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)
 
 
 def swaggerspec_id_get(id):  # noqa: E501
@@ -151,19 +157,18 @@ def swaggerspec_id_get(id):  # noqa: E501
         if ret is None:
             raise FileNotFoundException
 
-        return make_response(SwaggerSpec.to_dict(ret), 200)
+        return make_response(jsonify(ret), 200)
 
     except FileNotFoundException:
         e = Error("File not found")
-        return make_response(Error.to_dict(e), 404)
+        return make_response(jsonify(e), 404)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)
 
 
 def swaggerspec_id_delete(id):  # noqa: E501
@@ -189,19 +194,18 @@ def swaggerspec_id_delete(id):  # noqa: E501
             raise FileNotFoundException
 
         response = Success("Deleted successfully")
-        return make_response(Success.to_dict(response), 200)
+        return make_response(jsonify(response), 200)
 
     except FileNotFoundException:
         e = Error("File not found")
-        return make_response(Error.to_dict(e), 404)
+        return make_response(jsonify(e), 404)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)
 
 
 def swaggerspec_id_put(id, spec):  # noqa: E501
@@ -232,16 +236,15 @@ def swaggerspec_id_put(id, spec):  # noqa: E501
             raise FileNotFoundException
 
         response = Success("Updated successfully")
-        return make_response(Success.to_dict(response), 200)
+        return make_response(jsonify(response), 200)
 
     except FileNotFoundException:
         e = Error("File not found")
-        return make_response(Error.to_dict(e), 404)
+        return make_response(jsonify(e), 404)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)

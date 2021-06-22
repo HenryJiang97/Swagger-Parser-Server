@@ -1,4 +1,4 @@
-from flask import make_response
+from flask import make_response, jsonify
 
 from swagger_server.models.error import Error
 from swagger_server.models.swagger_spec import SwaggerSpec
@@ -37,31 +37,27 @@ def parse_id_get(id):  # noqa: E501
         # Parse
         spec_dict = SwaggerSpec.to_dict(spec)
         parser = Parser(swagger_dict=spec_dict)
-
-        # Info
         parser.build_info()
-
-        # Path
         parser.get_paths_data()
-
         parse_data = ParseData(
             parser.info,
             parser.base_path,
             parser.paths
         )
 
-        return make_response(ParseData.to_dict(parse_data), 200)
+        return make_response(jsonify(parse_data), 200)
 
-    except FileNotFoundException as e:
-        return make_response("File Not Found", 500)
+    except FileNotFoundException:
+        e = Error("File not found")
+        return make_response(jsonify(e), 500)
 
     except ParseException as e:
-        return make_response("Invalid File", 400)
+        e = Error(f"Parse exception: {str(e)}")
+        return make_response(jsonify(e), 400)
 
     except DBConnectionException:
         e = Error("Database connection error")
-        return make_response(Error.to_dict(e), 500)
+        return make_response(jsonify(e), 500)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
+        return make_response(jsonify(e), 503)

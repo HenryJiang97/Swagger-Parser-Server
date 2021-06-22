@@ -1,7 +1,7 @@
 import connexion
 import six
 
-from flask import make_response
+from flask import make_response, jsonify
 
 from swagger_server.models.success import Success  # noqa: E501
 from swagger_server.models.error import Error
@@ -38,13 +38,8 @@ def validate_post(body):  # noqa: E501
             validate_v3_spec(spec_dict)
 
         response = Success("Valid spec")
-        return make_response(Success.to_dict(response), 200)
-
-    except InvalidSpecException:
-        e = Error("Invalid spec")
-        return make_response(Error.to_dict(e), 400)
+        return make_response(jsonify(response), 200)
 
     except Exception as e:
-        e = Error(e)
-        return make_response(Error.to_dict(e), 503)
-
+        e = Error(f"Invalid spec: {str(e)}")
+        return make_response(jsonify(e), 400)

@@ -16,6 +16,8 @@ class Database:
 
     def connect(self):
         """Establish connection with Postgres DB=
+
+        :rtype: Connection | None
         """
         self.connection = psycopg2.connect(POSTGRESQL_URI)
         try:
@@ -29,7 +31,7 @@ class Database:
     def select_all(self):
         """Select all entries in the DB
 
-        :rtype: PeekData
+        :rtype: PeekData | Error
         """
         try:
             with self.connection:
@@ -57,7 +59,7 @@ class Database:
         :param spec: Specification file
         :type spec: SwaggerSpec
 
-        :rtype: Success
+        :rtype: Success | Error | None
         """
         psycopg2.extras.register_uuid()
         spec_id = uuid.uuid4()
@@ -66,6 +68,8 @@ class Database:
         spec_dict = SwaggerSpec.to_dict(spec)
 
         try:
+            if self.select_by_title(title) is not None:
+                return None
             with self.connection:
                 with self.connection.cursor() as cursor:
                     cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s);",
@@ -77,12 +81,31 @@ class Database:
     def clear(self):
         """Delete all entries from the DB
 
-        :rtype: Success
+        :rtype: Success | Error
         """
         try:
             self.clear_table()
             return Success("Table cleared")
         except psycopg2.errors.NoData as e:
+            return Error(e)
+
+    def select_by_title(self, title):
+        """Select spec file by title from database.
+
+        :param title: File title
+        :type title:
+
+        :rtype: SwaggerSpec | None | Error
+        """
+        try:
+            with self.connection:
+                with self.connection.cursor() as cursor:
+                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE title='{title}';")
+                    response = cursor.fetchall()
+                    for row in response:
+                        return SwaggerSpec.from_dict(row[0])
+                return None
+        except ConnectionError as e:
             return Error(e)
 
     def select_by_id(self, id):
@@ -91,7 +114,7 @@ class Database:
         :param id: File unique id
         :type id:
 
-        :rtype: SwaggerSpec
+        :rtype: SwaggerSpec | None | Error
         """
         try:
             with self.connection:
@@ -109,12 +132,10 @@ class Database:
 
         :param id: File unique id
         :type id:
-        :param name: File name
-        :type name: str
         :param spec: Specification file
         :type spec: SwaggerSpec
 
-        :rtype: Success
+        :rtype: Success | Error | None
         """
         version = spec.info['version']
         spec_dict = SwaggerSpec.to_dict(spec)
@@ -135,7 +156,7 @@ class Database:
         :param id: File unique id
         :type id:
 
-        :rtype: Success
+        :rtype: Success | Error | None
         """
         try:
             if self.select_by_id(id) is None:
