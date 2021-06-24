@@ -6,7 +6,6 @@ from flask import json
 from six import BytesIO
 
 from swagger_server.models.error import Error  # noqa: E501
-from swagger_server.models.parse_data import ParseData  # noqa: E501
 from swagger_server.test import BaseTestCase
 
 

@@ -5,8 +5,7 @@ import json
 import six
 import sys
 import jinja2
-
-from swagger_server.models.path import Path
+import hashlib
 
 from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
@@ -72,7 +71,7 @@ class Parser(SwaggerParser):
         self.info = {}
         self.definitions_example = {}
         self.build_definitions_example()
-        self.paths = []
+        self.paths = {}
         self.operation = {}
         self.generated_operation = {}
         self.get_paths_data()
@@ -157,13 +156,41 @@ class Parser(SwaggerParser):
         Get also the list of operationId.
         """
         for path, path_spec in self.specification['paths'].items():
-            url = u'{0}{1}'.format(self.base_path, path)
-            methods = []
+            path = u'{0}{1}'.format(self.base_path, path)
+            self.paths[path] = {}
+
+            # Add path-level parameters
+            default_parameters = {}
+            if 'parameters' in path_spec:
+                self._add_parameters(default_parameters, path_spec['parameters'])
 
             for http_method in path_spec.keys():
                 if http_method not in self._HTTP_VERBS:
                     continue
 
-                methods.append(http_method)
+                self.paths[path][http_method] = {}
 
-            self.paths.append(Path(url, methods))
+                # Add to operation list
+                action = path_spec[http_method]
+                tag = action['tags'][0] if 'tags' in action.keys() and action['tags'] else None
+                if 'operationId' in action.keys():
+                    self.operation[action['operationId']] = (path, http_method, tag)
+                else:
+                    # Note: the encoding chosen below isn't very important in this
+                    #       case; what matters is a byte string that is unique.
+                    #       URL paths and http methods should encode to UTF-8 safely.
+                    h = hashlib.sha256()
+                    h.update(("{0}|{1}".format(http_method, path)).encode('utf-8'))
+                    self.generated_operation[h.hexdigest()] = (path, http_method, tag)
+
+                # Get parameters
+                self.paths[path][http_method]['parameters'] = default_parameters.copy()
+                if 'parameters' in action.keys():
+                    self._add_parameters(self.paths[path][http_method]['parameters'], action['parameters'])
+
+                # Get responses
+                # self.paths[path][http_method]['responses'] = action['responses']
+
+                # Get mime types for this action
+                if 'consumes' in action.keys():
+                    self.paths[path][http_method]['consumes'] = action['consumes']

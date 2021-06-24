@@ -17,7 +17,7 @@ class Upload(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, name: str=None, file: SwaggerSpec=None):  # noqa: E501
+    def __init__(self, name: str=None, file: bytearray=None):  # noqa: E501
         """Upload - a model defined in Swagger
 
         :param name: The name of this Upload.  # noqa: E501
@@ -75,7 +75,7 @@ class Upload(Model):
         self._name = name
 
     @property
-    def file(self) -> SwaggerSpec:
+    def file(self) -> bytearray:
         """Gets the file of this Upload.
 
 
@@ -85,7 +85,7 @@ class Upload(Model):
         return self._file
 
     @file.setter
-    def file(self, file: SwaggerSpec):
+    def file(self, file: bytearray):
         """Sets the file of this Upload.
 
 

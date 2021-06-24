@@ -220,24 +220,59 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "swagger_server.controllers.validator_controller"
-  /parse/{id}:
+  /parse/info/{id}:
     get:
       tags:
-      - "Parser"
-      summary: "Parse an API spec"
-      operationId: "parse_id_get"
+        - "Parser"
+      summary: "Parse spec info"
+      operationId: "parse_info_id_get"
       parameters:
-      - name: "id"
-        in: "path"
-        description: "File unique id"
-        required: true
-        type: "string"
-        format: "uuid"
+        - name: "id"
+          in: "path"
+          description: "File unique id"
+          required: true
+          type: "string"
+          format: "uuid"
       responses:
         "200":
           description: "Parse successful"
           schema:
-            $ref: "#/definitions/ParseData"
+            $ref: "#/definitions/Info"
+        "400":
+          description: "Parse exception"
+          schema:
+            $ref: "#/definitions/Error"
+        "404":
+          description: "File not found"
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: "Database connection error"
+          schema:
+            $ref: "#/definitions/Error"
+        "503":
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.parser_controller"
+  /parse/paths/{id}:
+    get:
+      tags:
+        - "Parser"
+      summary: "Parse spec paths"
+      operationId: "parse_paths_id_get"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "File unique id"
+          required: true
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "Parse successful"
+          schema:
+            $ref: "#/definitions/Paths"
         "400":
           description: "Parse exception"
           schema:
@@ -316,27 +351,6 @@ definitions:
       definitions: "{}"
       swagger: "swagger"
       info: "{}"
-  ParseData:
-    type: "object"
-    required:
-    - "basePath"
-    - "paths"
-    properties:
-      info:
-        type: "object"
-        properties: {}
-      basePath:
-        type: "string"
-      paths:
-        type: "array"
-        items:
-          $ref: "#/definitions/Path"
-    example:
-      basePath: "basePath"
-      paths: "{}"
-      info:
-      - "{}"
-      - "{}"
   Path:
     type: "object"
     required:
@@ -354,6 +368,29 @@ definitions:
       methods:
       - "method"
       - "method"
+  Info:
+    type: "object"
+    required:
+      - "title"
+      - "version"
+    properties:
+      title:
+        type: "string"
+      version:
+        type: "string"
+      description:
+        type: "string"
+    example:
+      title: "title"
+      version: "1.0.0"
+      description: "description"
+  Paths:
+    type: "object"
+    properties:
+      paths:
+        type: "object"
+    example:
+      paths: { }
   Upload:
     type: "object"
     required:
