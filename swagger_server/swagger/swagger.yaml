@@ -33,12 +33,8 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/PeekData"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -72,7 +68,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -91,12 +87,8 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/Success"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -122,16 +114,12 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/SwaggerSpec"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
         "404":
           description: "File not found"
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -162,16 +150,12 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/Success"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
         "404":
           description: "File not found"
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -196,16 +180,12 @@ paths:
           description: "Success"
           schema:
             $ref: "#/definitions/Success"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
         "404":
           description: "File not found"
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "Server error"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -235,10 +215,6 @@ paths:
           description: "Invalid"
           schema:
             $ref: "#/definitions/Error"
-        "500":
-          description: "Server error"
-          schema:
-            $ref: "#/definitions/Error"
         "503":
           description: "Service unavailable"
           schema:
@@ -248,7 +224,7 @@ paths:
     get:
       tags:
       - "Parser"
-      summary: "Parse an API file"
+      summary: "Parse an API spec"
       operationId: "parse_id_get"
       parameters:
       - name: "id"
@@ -259,15 +235,19 @@ paths:
         format: "uuid"
       responses:
         "200":
-          description: "Valid"
+          description: "Parse successful"
           schema:
             $ref: "#/definitions/ParseData"
         "400":
-          description: "Invalid"
+          description: "Parse exception"
+          schema:
+            $ref: "#/definitions/Error"
+        "404":
+          description: "File not found"
           schema:
             $ref: "#/definitions/Error"
         "500":
-          description: "File not found"
+          description: "Database connection error"
           schema:
             $ref: "#/definitions/Error"
         "503":
@@ -350,12 +330,30 @@ definitions:
       paths:
         type: "array"
         items:
-          type: "object"
+          $ref: "#/definitions/Path"
     example:
       basePath: "basePath"
       paths: "{}"
       info:
-        - {}
+      - "{}"
+      - "{}"
+  Path:
+    type: "object"
+    required:
+      - "url"
+      - "methods"
+    properties:
+      url:
+        type: "string"
+      methods:
+        type: "array"
+        items:
+          type: "string"
+    example:
+      url: "url"
+      methods:
+      - "method"
+      - "method"
   Upload:
     type: "object"
     required:
@@ -387,8 +385,13 @@ definitions:
       id: {}
       version: "version"
   SpecId:
-    type: "string"
-    format: "uuid"
+    type: "object"
+    required:
+    - "id"
+    properties:
+      id:
+        type: "string"
+        format: "uuid"
   Success:
     type: "object"
     required:

@@ -8,6 +8,7 @@ from swagger_server.models.success import Success
 from swagger_server.models.error import Error
 from swagger_server.models.swagger_spec import SwaggerSpec
 from swagger_server.models.peek_data import PeekData
+from swagger_server.models.spec_id import SpecId
 
 
 class Database:
@@ -74,7 +75,7 @@ class Database:
                 with self.connection.cursor() as cursor:
                     cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s);",
                                    (spec_id, name, title, version, json.dumps(spec_dict)))
-                return Success("Upload success")
+                return SpecId(spec_id)
         except psycopg2.errors.DuplicateFile:
             return Error("Duplicate files")
 

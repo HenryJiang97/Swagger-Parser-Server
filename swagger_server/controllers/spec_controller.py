@@ -6,12 +6,10 @@ from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
 
 from swagger_server.models.error import Error  # noqa: E501
-from swagger_server.models.peek_data import PeekData  # noqa: E501
 from swagger_server.models.spec_id import SpecId  # noqa: E501
 from swagger_server.models.success import Success  # noqa: E501
 from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
 from swagger_server.models.upload import Upload  # noqa: E501
-from swagger_server import util
 
 from swagger_server.models.exceptions.file_not_found_exception import FileNotFoundException
 from swagger_server.models.exceptions.db_connection_exception import DBConnectionException
@@ -60,8 +58,7 @@ def swaggerspec_post(body):  # noqa: E501
         if ret is None:
             raise DuplicateFileException
 
-        response = Success("Upload success")
-        return make_response(jsonify(response), 200)
+        return make_response(jsonify(ret), 200)
 
     except InvalidSpecException as e:
         e = Error(f"Invalid spec: {str(e)}")

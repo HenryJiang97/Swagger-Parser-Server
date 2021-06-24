@@ -7,8 +7,6 @@ from swagger_server.models.success import Success  # noqa: E501
 from swagger_server.models.error import Error
 from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
 
-from swagger_server.models.exceptions.invalid_spec_exception import InvalidSpecException
-
 from openapi_spec_validator import validate_v2_spec
 from openapi_spec_validator import validate_v3_spec
 

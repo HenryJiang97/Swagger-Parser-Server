@@ -49,7 +49,7 @@ def parse_id_get(id):  # noqa: E501
 
     except FileNotFoundException:
         e = Error("File not found")
-        return make_response(jsonify(e), 500)
+        return make_response(jsonify(e), 404)
 
     except ParseException as e:
         e = Error(f"Parse exception: {str(e)}")
