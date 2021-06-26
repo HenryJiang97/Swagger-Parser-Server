@@ -52,7 +52,7 @@ class Database:
         except ConnectionError as e:
             return Error(e)
 
-    def insert(self, name, spec):
+    def insert(self, name, spec, content_type, raw):
         """Insert new entry to the DB
 
         :param name: File name
@@ -69,12 +69,12 @@ class Database:
         spec_dict = SwaggerSpec.to_dict(spec)
 
         try:
-            if self.select_by_title(title) is not None:
+            if self.select_by_title_and_version(title, version) is not None:
                 return None
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s);",
-                                   (spec_id, name, title, version, json.dumps(spec_dict)))
+                    cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                                   (spec_id, name, title, version, json.dumps(spec_dict), content_type, raw))
                 return SpecId(spec_id)
         except psycopg2.errors.DuplicateFile:
             return Error("Duplicate files")
@@ -90,7 +90,7 @@ class Database:
         except psycopg2.errors.NoData as e:
             return Error(e)
 
-    def select_by_title(self, title):
+    def select_by_title_and_version(self, title, version):
         """Select spec file by title from database.
 
         :param title: File title
@@ -101,7 +101,7 @@ class Database:
         try:
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE title='{title}';")
+                    cursor.execute(f"SELECT raw FROM {TABLENAME} WHERE title='{title}' AND version='{version}';")
                     response = cursor.fetchall()
                     for row in response:
                         return SwaggerSpec.from_dict(row[0])
@@ -120,15 +120,15 @@ class Database:
         try:
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE id='{id}';")
+                    cursor.execute(f"SELECT name, content_type, raw FROM {TABLENAME} WHERE id='{id}';")
                     response = cursor.fetchall()
                     for row in response:
-                        return SwaggerSpec.from_dict(row[0])
+                        return row
                 return None
         except ConnectionError as e:
             return Error(e)
 
-    def update_by_id(self, id, spec):
+    def update_by_id(self, id, name, spec, content_type, raw):
         """Update spec file by id from database.
 
         :param id: File unique id
@@ -146,7 +146,8 @@ class Database:
                 return None
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"UPDATE {TABLENAME} SET version=(%s), spec=(%s) WHERE id='{id}';", (version, json.dumps(spec_dict)))
+                    cursor.execute(f"UPDATE {TABLENAME} SET name=(%s), version=(%s), spec=(%s), content_type=(%s), raw=(%s) WHERE id='{id}';",
+                                   (name, version, json.dumps(spec_dict), content_type, raw))
                 return Success("Update success")
         except psycopg2.errors.SqlJsonMemberNotFound as e:
             return Error(e)
@@ -173,11 +174,13 @@ class Database:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(f"CREATE TABLE {TABLENAME} "
-                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON);")
+                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON, "
+                               f"content_type TEXT, raw bytea);")
 
     def clear_table(self):
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(f"DROP TABLE {TABLENAME};")
                 cursor.execute(f"CREATE TABLE {TABLENAME} "
-                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON);")
+                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON, "
+                               f"content_type TEXT, raw bytea);")

@@ -1,0 +1,2 @@
+class InvalidContentTypeException(Exception):
+    pass

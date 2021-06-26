@@ -47,20 +47,21 @@ paths:
       - "Spec"
       summary: "Upload .yaml file, validate and save JSON format to database."
       operationId: "swaggerspec_post"
+      consumes:
+        - "multipart/form-data"
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Upload file data"
-        required: true
-        schema:
-          $ref: "#/definitions/Upload"
+        - name: "upfile"
+          in: "formData"
+          description: "The file to upload."
+          required: false
+          type: "file"
       responses:
         "200":
           description: "Success"
           schema:
             $ref: "#/definitions/SpecId"
         "400":
-          description: "Invalid"
+          description: "Invalid spec"
           schema:
             $ref: "#/definitions/Error"
         "409":
@@ -132,6 +133,8 @@ paths:
       - "Spec"
       summary: "Update spec file by id from database."
       operationId: "swaggerspec_id_put"
+      consumes:
+        - "multipart/form-data"
       parameters:
       - name: "id"
         in: "path"
@@ -139,17 +142,20 @@ paths:
         required: true
         type: "string"
         format: "uuid"
-      - in: "body"
-        name: "spec"
-        description: "Updated spec"
-        required: true
-        schema:
-          $ref: "#/definitions/SwaggerSpec"
+      - name: "upfile"
+        in: "formData"
+        description: "The file to upload."
+        required: false
+        type: "file"
       responses:
         "200":
           description: "Success"
           schema:
             $ref: "#/definitions/Success"
+        "400":
+          description: "Invalid spec"
+          schema:
+            $ref: "#/definitions/Error"
         "404":
           description: "File not found"
           schema:
@@ -351,23 +357,6 @@ definitions:
       definitions: "{}"
       swagger: "swagger"
       info: "{}"
-  Path:
-    type: "object"
-    required:
-      - "url"
-      - "methods"
-    properties:
-      url:
-        type: "string"
-      methods:
-        type: "array"
-        items:
-          type: "string"
-    example:
-      url: "url"
-      methods:
-      - "method"
-      - "method"
   Info:
     type: "object"
     required:
@@ -386,11 +375,6 @@ definitions:
       description: "description"
   Paths:
     type: "object"
-    properties:
-      paths:
-        type: "object"
-    example:
-      paths: { }
   Upload:
     type: "object"
     required:
