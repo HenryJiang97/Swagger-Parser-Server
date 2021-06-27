@@ -16,8 +16,6 @@ from swagger_server.service.parser import Parser
 def parse_info_id_get(id):  # noqa: E501
     """Parse spec info
 
-     # noqa: E501
-
     :param id: File unique id
     :type id:
 
@@ -56,13 +54,11 @@ def parse_info_id_get(id):  # noqa: E501
         return make_response(jsonify(e), 500)
 
     except Exception as e:
-        return make_response(jsonify(e), 503)
+        return make_response(str(e), 503)
 
 
-def parse_paths_id_get(id):  # noqa: E501
+def parse_paths_id_get(id):
     """Parse spec paths
-
-     # noqa: E501
 
     :param id: File unique id
     :type id:
@@ -102,4 +98,4 @@ def parse_paths_id_get(id):  # noqa: E501
         return make_response(jsonify(e), 500)
 
     except Exception as e:
-        return make_response(jsonify(e), 503)
+        return make_response(str(e), 503)

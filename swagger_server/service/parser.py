@@ -176,9 +176,6 @@ class Parser(SwaggerParser):
                 if 'operationId' in action.keys():
                     self.operation[action['operationId']] = (path, http_method, tag)
                 else:
-                    # Note: the encoding chosen below isn't very important in this
-                    #       case; what matters is a byte string that is unique.
-                    #       URL paths and http methods should encode to UTF-8 safely.
                     h = hashlib.sha256()
                     h.update(("{0}|{1}".format(http_method, path)).encode('utf-8'))
                     self.generated_operation[h.hexdigest()] = (path, http_method, tag)

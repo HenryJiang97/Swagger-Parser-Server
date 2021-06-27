@@ -9,12 +9,7 @@ T = typing.TypeVar('T')
 
 
 class Model(object):
-    # swaggerTypes: The key is attribute name and the
-    # value is attribute type.
     swagger_types = {}
-
-    # attributeMap: The key is attribute name and the
-    # value is json key in definition.
     attribute_map = {}
 
     @classmethod

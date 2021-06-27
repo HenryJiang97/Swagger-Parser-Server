@@ -59,6 +59,10 @@ class Database:
         :type name: str
         :param spec: Specification file
         :type spec: SwaggerSpec
+        :param content_type: Raw file content type
+        :type content_type: str
+        :param raw: Raw file
+        :type raw: binary
 
         :rtype: Success | Error | None
         """
@@ -93,8 +97,10 @@ class Database:
     def select_by_title_and_version(self, title, version):
         """Select spec file by title from database.
 
-        :param title: File title
-        :type title:
+        :param title: Spec title
+        :type title: str
+        :param version: Spec version
+        :type version: str
 
         :rtype: SwaggerSpec | None | Error
         """
@@ -113,7 +119,7 @@ class Database:
         """Select spec file by id from database.
 
         :param id: File unique id
-        :type id:
+        :type id: str (uuid)
 
         :rtype: SwaggerSpec | None | Error
         """
@@ -132,9 +138,15 @@ class Database:
         """Update spec file by id from database.
 
         :param id: File unique id
-        :type id:
+        :type id: str (uuid)
+        :param name: File name
+        :type name: str
         :param spec: Specification file
         :type spec: SwaggerSpec
+        :param content_type: Raw file content type
+        :type content_type: str
+        :param raw: Raw file
+        :type raw: binary
 
         :rtype: Success | Error | None
         """
@@ -156,7 +168,7 @@ class Database:
         """Delete spec file by id from database.
 
         :param id: File unique id
-        :type id:
+        :type id: str (uuid)
 
         :rtype: Success | Error | None
         """

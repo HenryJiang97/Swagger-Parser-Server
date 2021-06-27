@@ -1,9 +1,9 @@
 ---
 swagger: "2.0"
 info:
-  description: "This design document is for API service, including uploading API files,download\
-    \ existing API files and validate .YAML file. Also, this system offersAPI file\
-    \ data parsing and editing for non-professional users."
+  description: "This design document is for swagger API service, including validate and upload API spec files, \
+                \download existing raw API spec files. Also, this system offers basic info and paths parsing for existing specs. \
+                \This system currently supports both JSON and YAML files."
   version: "1.0.0"
   title: "Swagger Parser"
 host: "localhost:5000"
@@ -11,8 +11,6 @@ basePath: "/"
 tags:
 - name: "Spec"
   description: "Swagger specifications"
-- name: "Validator"
-  description: "Swagger validator"
 - name: "Parser"
   description: "Swagger spec parser"
 schemes:
@@ -23,7 +21,7 @@ paths:
     get:
       tags:
       - "Spec"
-      summary: "List all files existing in database."
+      summary: "List all specs existing in database."
       operationId: "swaggerspec_get"
       parameters: []
       responses:
@@ -80,7 +78,7 @@ paths:
     delete:
       tags:
       - "Spec"
-      summary: "Delete all files existing in database."
+      summary: "Delete all specs existing in database."
       operationId: "swaggerspec_delete"
       parameters: []
       responses:
@@ -101,7 +99,7 @@ paths:
     get:
       tags:
       - "Spec"
-      summary: "Get spec file by id from database."
+      summary: "Get raw file by id from database."
       operationId: "swaggerspec_id_get"
       parameters:
       - name: "id"
@@ -199,33 +197,6 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "swagger_server.controllers.spec_controller"
-  /validate:
-    post:
-      tags:
-      - "Validator"
-      summary: "Validate the specs of an API file"
-      operationId: "validate_post"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "API file data"
-        required: true
-        schema:
-          $ref: "#/definitions/SwaggerSpec"
-      responses:
-        "200":
-          description: "Valid"
-          schema:
-            $ref: "#/definitions/Success"
-        "400":
-          description: "Invalid"
-          schema:
-            $ref: "#/definitions/Error"
-        "503":
-          description: "Service unavailable"
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "swagger_server.controllers.validator_controller"
   /parse/info/{id}:
     get:
       tags:
@@ -375,17 +346,6 @@ definitions:
       description: "description"
   Paths:
     type: "object"
-  Upload:
-    type: "object"
-    required:
-    - "file"
-    - "name"
-    properties:
-      name:
-        type: "string"
-        description: "File name"
-      file:
-        $ref: "#/definitions/SwaggerSpec"
   PeekData:
     type: "object"
     required:

@@ -1,40 +1,39 @@
-import connexion
-import six
 import yaml
 import json
 import io
 from flask import make_response, jsonify, send_file
-
 from openapi_spec_validator import validate_v2_spec, validate_v3_spec
 
-from swagger_server.models.error import Error  # noqa: E501
-from swagger_server.models.spec_id import SpecId  # noqa: E501
-from swagger_server.models.success import Success  # noqa: E501
-from swagger_server.models.swagger_spec import SwaggerSpec  # noqa: E501
+# Models
+from swagger_server.models.error import Error
+from swagger_server.models.spec_id import SpecId
+from swagger_server.models.success import Success
+from swagger_server.models.swagger_spec import SwaggerSpec
 
+# Exceptions
 from swagger_server.models.exceptions.file_not_found_exception import FileNotFoundException
 from swagger_server.models.exceptions.db_connection_exception import DBConnectionException
 from swagger_server.models.exceptions.duplicate_file_exception import DuplicateFileException
 from swagger_server.models.exceptions.invalid_spec_exception import InvalidSpecException
 from swagger_server.models.exceptions.invalid_content_type_exception import InvalidContentTypeException
 
+# Database
 from swagger_server.db.db import Database
 
+# Accepted file types
 _CONTENT_TYPES = set(['application/json', 'text/yaml'])
 
 
 def swaggerspec_post(upfile=None):  # noqa: E501
-    """Upload .yaml file, validate and save JSON format to database.
+    """Upload spec (.yaml or .json) file, validate and save raw file and JSON format spec to database.
 
-     # noqa: E501
-
-    :param body: Upload file data
-    :type body: dict | bytes
+    :param upfile: Upload file data
+    :type upfile: formData
 
     :rtype: SpecId
     """
     try:
-        # Get raw file
+        # Get raw filea
         filename = upfile.filename
         content_type = upfile.content_type
         if content_type not in _CONTENT_TYPES:
@@ -94,9 +93,7 @@ def swaggerspec_post(upfile=None):  # noqa: E501
 
 
 def swaggerspec_delete():  # noqa: E501
-    """Delete all files existing in database.
-
-     # noqa: E501
+    """Delete all specs existing in database.
 
     :rtype: Success
     """
@@ -118,14 +115,11 @@ def swaggerspec_delete():  # noqa: E501
         return make_response(jsonify(e), 500)
 
     except Exception as e:
-        return make_response(jsonify(e), 503)
+        return make_response(str(e), 503)
 
 
 def swaggerspec_get():  # noqa: E501
-    """List all files existing in database.
-
-     # noqa: E501
-
+    """List all specs existing in database.
 
     :rtype: List[PeekData]
     """
@@ -146,18 +140,16 @@ def swaggerspec_get():  # noqa: E501
         return make_response(jsonify(e), 500)
 
     except Exception as e:
-        return make_response(jsonify(e), 503)
+        return make_response(str(e), 503)
 
 
 def swaggerspec_id_get(id):  # noqa: E501
-    """Get spec file by id from database.
-
-     # noqa: E501
+    """Get raw file by id from database.
 
     :param id: File unique id
     :type id: str
 
-    :rtype: SwaggerSpec
+    :rtype: binary
     """
     try:
         # Database connection
@@ -197,8 +189,6 @@ def swaggerspec_id_get(id):  # noqa: E501
 def swaggerspec_id_delete(id):  # noqa: E501
     """Delete spec file by id from database.
 
-     # noqa: E501
-
     :param id: File unique id
     :type id: str
 
@@ -228,18 +218,16 @@ def swaggerspec_id_delete(id):  # noqa: E501
         return make_response(jsonify(e), 500)
 
     except Exception as e:
-        return make_response(jsonify(e), 503)
+        return make_response(str(e), 503)
 
 
 def swaggerspec_id_put(id, upfile=None):  # noqa: E501
     """Update spec file by id from database.
 
-     # noqa: E501
-
     :param id: File unique id
     :type id:
-    :param spec: Updated spec
-    :type spec: dict | bytes
+    :param upfile: Updated spec
+    :type upfile: formData
 
     :rtype: Success
     """
