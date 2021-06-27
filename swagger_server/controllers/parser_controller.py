@@ -29,7 +29,7 @@ def parse_info_id_get(id):  # noqa: E501
             raise DBConnectionException
 
         # Database manipulation
-        spec = db.select_by_id(id)
+        spec = db.select_spec_by_id(id)
         if spec is None:
             raise FileNotFoundException
 
@@ -73,7 +73,7 @@ def parse_paths_id_get(id):
             raise DBConnectionException
 
         # Database manipulation
-        spec = db.select_by_id(id)
+        spec = db.select_spec_by_id(id)
         if spec is None:
             raise FileNotFoundException
 

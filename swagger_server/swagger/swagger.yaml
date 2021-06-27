@@ -1,9 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  description: "This design document is for swagger API service, including validate and upload API spec files, \
-                \download existing raw API spec files. Also, this system offers basic info and paths parsing for existing specs. \
-                \This system currently supports both JSON and YAML files."
+  description: "This design document is for swagger API service, including validate and upload API spec files, download existing raw API spec files. Also, this system offers basic info and paths parsing for existing specs. This system currently supports both JSON and YAML files."
   version: "1.0.0"
   title: "Swagger Parser"
 host: "localhost:5000"

@@ -102,7 +102,7 @@ class Database:
         :param version: Spec version
         :type version: str
 
-        :rtype: SwaggerSpec | None | Error
+        :rtype: binary
         """
         try:
             with self.connection:
@@ -116,12 +116,12 @@ class Database:
             return Error(e)
 
     def select_by_id(self, id):
-        """Select spec file by id from database.
+        """Select raw file by id from database.
 
         :param id: File unique id
         :type id: str (uuid)
 
-        :rtype: SwaggerSpec | None | Error
+        :rtype: binary
         """
         try:
             with self.connection:
@@ -130,6 +130,25 @@ class Database:
                     response = cursor.fetchall()
                     for row in response:
                         return row
+                return None
+        except ConnectionError as e:
+            return Error(e)
+
+    def select_spec_by_id(self, id):
+        """Select spec file by id from database.
+
+        :param id: File unique id
+        :type id: str (uuid)
+
+        :rtype: SwaggerSpec
+        """
+        try:
+            with self.connection:
+                with self.connection.cursor() as cursor:
+                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE id='{id}';")
+                    response = cursor.fetchall()
+                    for row in response:
+                        return SwaggerSpec.from_dict(row[0])
                 return None
         except ConnectionError as e:
             return Error(e)
