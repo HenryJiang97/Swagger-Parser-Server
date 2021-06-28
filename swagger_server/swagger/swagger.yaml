@@ -41,7 +41,7 @@ paths:
     post:
       tags:
       - "Spec"
-      summary: "Upload .yaml file, validate and save JSON format to database."
+      summary: "Upload .yaml / .json file, validate and save swagger spec to database."
       operationId: "swaggerspec_post"
       consumes:
         - "multipart/form-data"
@@ -76,7 +76,7 @@ paths:
     delete:
       tags:
       - "Spec"
-      summary: "Delete all specs existing in database."
+      summary: "Delete all files existing in database."
       operationId: "swaggerspec_delete"
       parameters: []
       responses:
@@ -195,7 +195,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "swagger_server.controllers.spec_controller"
-  /parse/info/{id}:
+  /swaggerspec/{id}/parse/info:
     get:
       tags:
         - "Parser"
@@ -230,7 +230,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "swagger_server.controllers.parser_controller"
-  /parse/paths/{id}:
+  /swaggerspec/{id}/parse/paths:
     get:
       tags:
         - "Parser"

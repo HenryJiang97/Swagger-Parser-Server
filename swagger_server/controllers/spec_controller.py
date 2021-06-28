@@ -33,11 +33,11 @@ def swaggerspec_post(upfile=None):  # noqa: E501
     :rtype: SpecId
     """
     try:
-        # Get raw filea
+        # Get raw file
         filename = upfile.filename
         content_type = upfile.content_type
         if content_type not in _CONTENT_TYPES:
-            raise InvalidContentTypeException
+            raise InvalidSpecException("content type")
 
         # Get spec dict
         stream = upfile.stream
@@ -92,7 +92,7 @@ def swaggerspec_post(upfile=None):  # noqa: E501
         return make_response(str(e), 503)
 
 
-def swaggerspec_delete():  # noqa: E501
+def swaggerspec_delete():
     """Delete all specs existing in database.
 
     :rtype: Success
@@ -118,7 +118,7 @@ def swaggerspec_delete():  # noqa: E501
         return make_response(str(e), 503)
 
 
-def swaggerspec_get():  # noqa: E501
+def swaggerspec_get():
     """List all specs existing in database.
 
     :rtype: List[PeekData]
@@ -143,7 +143,7 @@ def swaggerspec_get():  # noqa: E501
         return make_response(str(e), 503)
 
 
-def swaggerspec_id_get(id):  # noqa: E501
+def swaggerspec_id_get(id):
     """Get raw file by id from database.
 
     :param id: File unique id
@@ -186,7 +186,7 @@ def swaggerspec_id_get(id):  # noqa: E501
         return make_response(str(e), 503)
 
 
-def swaggerspec_id_delete(id):  # noqa: E501
+def swaggerspec_id_delete(id):
     """Delete spec file by id from database.
 
     :param id: File unique id
@@ -221,7 +221,7 @@ def swaggerspec_id_delete(id):  # noqa: E501
         return make_response(str(e), 503)
 
 
-def swaggerspec_id_put(id, upfile=None):  # noqa: E501
+def swaggerspec_id_put(id, upfile=None):
     """Update spec file by id from database.
 
     :param id: File unique id
@@ -236,7 +236,7 @@ def swaggerspec_id_put(id, upfile=None):  # noqa: E501
         filename = upfile.filename
         content_type = upfile.content_type
         if content_type not in _CONTENT_TYPES:
-            raise InvalidContentTypeException
+            raise InvalidSpecException("content type")
 
         # Get spec dict
         stream = upfile.stream

@@ -70,15 +70,14 @@ class Database:
         spec_id = uuid.uuid4()
         title = spec.info['title']
         version = spec.info['version']
-        spec_dict = SwaggerSpec.to_dict(spec)
 
         try:
             if self.select_by_title_and_version(title, version) is not None:
                 return None
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s, %s, %s);",
-                                   (spec_id, name, title, version, json.dumps(spec_dict), content_type, raw))
+                    cursor.execute(f"INSERT INTO {TABLENAME} VALUES (%s, %s, %s, %s, %s, %s);",
+                                   (spec_id, name, title, version, content_type, raw))
                 return SpecId(spec_id)
         except psycopg2.errors.DuplicateFile:
             return Error("Duplicate files")
@@ -134,25 +133,6 @@ class Database:
         except ConnectionError as e:
             return Error(e)
 
-    def select_spec_by_id(self, id):
-        """Select spec file by id from database.
-
-        :param id: File unique id
-        :type id: str (uuid)
-
-        :rtype: SwaggerSpec
-        """
-        try:
-            with self.connection:
-                with self.connection.cursor() as cursor:
-                    cursor.execute(f"SELECT spec FROM {TABLENAME} WHERE id='{id}';")
-                    response = cursor.fetchall()
-                    for row in response:
-                        return SwaggerSpec.from_dict(row[0])
-                return None
-        except ConnectionError as e:
-            return Error(e)
-
     def update_by_id(self, id, name, spec, content_type, raw):
         """Update spec file by id from database.
 
@@ -170,15 +150,14 @@ class Database:
         :rtype: Success | Error | None
         """
         version = spec.info['version']
-        spec_dict = SwaggerSpec.to_dict(spec)
 
         try:
             if self.select_by_id(id) is None:
                 return None
             with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(f"UPDATE {TABLENAME} SET name=(%s), version=(%s), spec=(%s), content_type=(%s), raw=(%s) WHERE id='{id}';",
-                                   (name, version, json.dumps(spec_dict), content_type, raw))
+                    cursor.execute(f"UPDATE {TABLENAME} SET name=(%s), version=(%s), content_type=(%s), raw=(%s) WHERE id='{id}';",
+                                   (name, version, content_type, raw))
                 return Success("Update success")
         except psycopg2.errors.SqlJsonMemberNotFound as e:
             return Error(e)
@@ -205,7 +184,7 @@ class Database:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(f"CREATE TABLE {TABLENAME} "
-                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON, "
+                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, "
                                f"content_type TEXT, raw bytea);")
 
     def clear_table(self):
@@ -213,5 +192,5 @@ class Database:
             with self.connection.cursor() as cursor:
                 cursor.execute(f"DROP TABLE {TABLENAME};")
                 cursor.execute(f"CREATE TABLE {TABLENAME} "
-                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, spec JSON, "
+                               f"(id UUID UNIQUE, name TEXT, title TEXT, version TEXT, "
                                f"content_type TEXT, raw bytea);")

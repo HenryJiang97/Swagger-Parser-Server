@@ -1,3 +1,5 @@
+import yaml
+import json
 from flask import make_response, jsonify
 
 from swagger_server.models.error import Error
@@ -13,7 +15,7 @@ from swagger_server.db.db import Database
 from swagger_server.service.parser import Parser
 
 
-def parse_info_id_get(id):  # noqa: E501
+def parse_info_id_get(id):
     """Parse spec info
 
     :param id: File unique id
@@ -29,12 +31,19 @@ def parse_info_id_get(id):  # noqa: E501
             raise DBConnectionException
 
         # Database manipulation
-        spec = db.select_spec_by_id(id)
-        if spec is None:
+        ret = db.select_by_id(id)
+        if ret is None:
             raise FileNotFoundException
 
+        content_type = ret[1]
+        raw = bytes(ret[2])
+        spec_dict = None
+        if content_type == "application/json":
+            spec_dict = json.loads(raw)
+        if content_type == "text/yaml":
+            spec_dict = yaml.safe_load(raw)
+
         # Parse
-        spec_dict = SwaggerSpec.to_dict(spec)
         parser = Parser(swagger_dict=spec_dict)
         parser.build_info()
         info = Info.from_dict(parser.info)
@@ -73,12 +82,19 @@ def parse_paths_id_get(id):
             raise DBConnectionException
 
         # Database manipulation
-        spec = db.select_spec_by_id(id)
-        if spec is None:
+        ret = db.select_by_id(id)
+        if ret is None:
             raise FileNotFoundException
 
+        content_type = ret[1]
+        raw = bytes(ret[2])
+        spec_dict = None
+        if content_type == "application/json":
+            spec_dict = json.loads(raw)
+        if content_type == "text/yaml":
+            spec_dict = yaml.safe_load(raw)
+
         # Parse
-        spec_dict = SwaggerSpec.to_dict(spec)
         parser = Parser(swagger_dict=spec_dict)
         parser.get_paths_data()
         paths = Paths.from_dict(parser.paths)
