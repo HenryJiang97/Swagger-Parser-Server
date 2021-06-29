@@ -338,10 +338,23 @@ definitions:
         type: "string"
       description:
         type: "string"
+      host:
+        type: "string"
+      basePath:
+        type: "string"
+      servers:
+        type: "array"
+        items:
+          type: "object"
     example:
       title: "title"
       version: "1.0.0"
       description: "description"
+      host: "host"
+      basePath: "basePath"
+      servers:
+        - {}
+        - {}
   Paths:
     type: "object"
   PeekData:

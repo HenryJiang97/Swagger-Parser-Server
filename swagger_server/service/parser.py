@@ -88,6 +88,11 @@ class Parser(SwaggerParser):
                 self.info['version'] = self.specification['info']['version']
             if "description" in self.specification['info']:
                 self.info['description'] = self.specification['info']['description']
+            if self.get_api_version() == 2:
+                self.info['host'] = self.specification['host']
+                self.info['basePath'] = self.specification['basePath']
+            else:
+                self.info['servers'] = self.specification['servers']
 
     def build_definitions_example(self):
         """Parse all definitions in the swagger specification."""
